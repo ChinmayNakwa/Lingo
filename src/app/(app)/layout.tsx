@@ -1,0 +1,28 @@
+import Link from "next/link";
+import { Suspense } from "react";
+import { Nav } from "@/components/nav";
+
+export default function AppLayout({ children }: LayoutProps<"/">) {
+  return (
+    <>
+      <header className="border-b-2 border-ink bg-card">
+        <div className="mx-auto flex max-w-5xl flex-wrap items-center gap-x-4 gap-y-2 px-4 py-3">
+          <Link href="/" className="text-2xl font-extrabold text-grape">
+            Lingo
+          </Link>
+          <Suspense>
+            <Nav className="hidden gap-1 sm:flex" />
+          </Suspense>
+        </div>
+      </header>
+
+      <main className="mx-auto w-full max-w-5xl flex-1 px-4 pt-6 pb-24 sm:pb-8">
+        {children}
+      </main>
+
+      <Suspense>
+        <Nav className="fixed inset-x-0 bottom-0 flex justify-around border-t-2 border-ink bg-card py-2 sm:hidden" />
+      </Suspense>
+    </>
+  );
+}

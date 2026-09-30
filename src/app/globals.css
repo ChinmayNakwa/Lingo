@@ -1,26 +1,97 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-baloo), "Trebuchet MS", sans-serif;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+@theme {
+  --color-sun: #fff1bf;
+  --color-card: #ffffff;
+  --color-ink: #23164a;
+  --color-grape: #6b3bf5;
+  --color-coral: #ff6b4a;
+  --color-leaf: #178f60;
+  --shadow-block: 0 5px 0 var(--color-ink);
+  --shadow-press: 0 4px 0 var(--color-ink);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--color-sun);
+  color: var(--color-ink);
+}
+
+:focus-visible {
+  outline: 3px solid var(--color-grape);
+  outline-offset: 2px;
+}
+
+@layer components {
+  .card {
+    background: var(--color-card);
+    border: 2px solid var(--color-ink);
+    border-radius: 18px;
+    box-shadow: var(--shadow-block);
+    padding: 1rem 1.125rem;
+  }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    background: var(--color-grape);
+    color: var(--color-card);
+    border: 2px solid var(--color-ink);
+    border-radius: 14px;
+    box-shadow: var(--shadow-press);
+    padding: 0.5rem 1rem;
+    font-weight: 800;
+    cursor: pointer;
+    transition:
+      transform 60ms,
+      box-shadow 60ms;
+  }
+
+  .btn:active:not(:disabled) {
+    transform: translateY(4px);
+    box-shadow: none;
+  }
+
+  .btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  .btn-quiet {
+    background: var(--color-card);
+    color: var(--color-ink);
+  }
+
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    background: var(--color-card);
+    border: 2px solid var(--color-ink);
+    border-radius: 999px;
+    padding: 0 0.75rem;
+    font-size: 0.875rem;
+    font-weight: 700;
+    line-height: 1.75;
+    white-space: nowrap;
+  }
+
+  .input {
+    width: 100%;
+    background: var(--color-card);
+    border: 2px solid var(--color-ink);
+    border-radius: 14px;
+    padding: 0.625rem 0.875rem;
+    font-weight: 500;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .btn {
+    transition: none;
+  }
 }
