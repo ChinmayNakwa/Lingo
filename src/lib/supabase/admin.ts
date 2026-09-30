@@ -1,5 +1,6 @@
 import "server-only";
 import { createClient } from "@supabase/supabase-js";
+import type { Database } from "./database.types";
 import { supabaseEnv } from "./env";
 
 // Bypasses row-level security. Only used to fill the shared words cache.
@@ -12,7 +13,7 @@ export function createAdminClient() {
     );
   }
 
-  return createClient(supabaseEnv().url, secretKey, {
+  return createClient<Database>(supabaseEnv().url, secretKey, {
     auth: { persistSession: false, autoRefreshToken: false },
   });
 }
