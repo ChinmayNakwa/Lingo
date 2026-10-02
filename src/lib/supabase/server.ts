@@ -5,8 +5,9 @@ import type { Database } from "./database.types";
 import { supabaseEnv } from "./env";
 
 export async function createClient() {
-  const { url, publishableKey } = supabaseEnv();
+  // Read cookies first so prerendering stops here, before the keys are needed.
   const cookieStore = await cookies();
+  const { url, publishableKey } = supabaseEnv();
 
   return createServerClient<Database>(url, publishableKey, {
     cookies: {
