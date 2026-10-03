@@ -3,11 +3,22 @@ import { cache } from "react";
 import { requireUser } from "./auth";
 import { fetchDefinition, type DictionaryEntry } from "./dictionary";
 import { createAdminClient } from "./supabase/admin";
+import type { Meaning } from "./supabase/database.types";
 
 export type SavedWord = {
   word: string;
   gloss: string;
   partOfSpeech: string;
+  addedAt: string;
+};
+
+export type WordDetail = {
+  wordId: number;
+  word: string;
+  phonetic: string | null;
+  audioUrl: string | null;
+  meanings: Meaning[];
+  note: string | null;
   addedAt: string;
 };
 
@@ -82,3 +93,30 @@ export const getMyWords = cache(async (): Promise<SavedWord[]> => {
     };
   });
 });
+
+export async function getMyWord(word: string): Promise<WordDetail | null> {
+  const { supabase, userId } = await requireUser();
+
+  const { data, error } = await supabase
+    .from("user_words")
+    .select("word_id, note, created_at, words!inner(word, phonetic, audio_url, meanings)")
+    .eq("user_id", userId)
+    .eq("words.word", word)
+    .maybeSingle();
+  if (error) {
+    throw new Error(`Couldn't load "${word}": ${error.message}`);
+  }
+  if (!data) {
+    return null;
+  }
+
+  return {
+    wordId: data.word_id,
+    word: data.words.word,
+    phonetic: data.words.phonetic,
+    audioUrl: data.words.audio_url,
+    meanings: data.words.meanings,
+    note: data.note,
+    addedAt: data.created_at,
+  };
+}

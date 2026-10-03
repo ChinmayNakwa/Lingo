@@ -1,6 +1,6 @@
 "use server";
 
-import { refresh } from "next/cache";
+import { redirect } from "next/navigation";
 import { cleanQuery } from "@/lib/dictionary";
 import type { FormState } from "@/lib/form-state";
 import { saveWord } from "@/lib/words";
@@ -24,7 +24,6 @@ export async function lookupWord(
     case "failed":
       return { error: `Couldn't save "${word}". Try again.` };
     case "saved":
-      refresh();
-      return { message: `"${word}" is in your collection.` };
+      redirect(`/words/${encodeURIComponent(word)}`);
   }
 }

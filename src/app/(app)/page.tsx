@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Suspense } from "react";
 import { SearchForm } from "@/components/search-form";
 import { getMyWords } from "@/lib/words";
@@ -39,12 +40,16 @@ async function LatestWords() {
   return (
     <ul className="flex flex-col gap-2">
       {words.map((item) => (
-        <li
-          key={item.word}
-          className="rounded-[14px] border-2 border-ink bg-card px-4 py-2"
-        >
-          <span className="text-lg font-extrabold text-grape">{item.word}</span>
-          <p className="line-clamp-1 font-medium">{item.gloss}</p>
+        <li key={item.word}>
+          <Link
+            href={`/words/${encodeURIComponent(item.word)}`}
+            className="block rounded-[14px] border-2 border-ink bg-card px-4 py-2"
+          >
+            <span className="text-lg font-extrabold text-grape">
+              {item.word}
+            </span>
+            <p className="line-clamp-1 font-medium">{item.gloss}</p>
+          </Link>
         </li>
       ))}
     </ul>
