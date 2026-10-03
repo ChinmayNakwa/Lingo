@@ -1,9 +1,17 @@
 "use server";
 
+import { refresh } from "next/cache";
 import { redirect } from "next/navigation";
 import { cleanQuery } from "@/lib/dictionary";
 import type { FormState } from "@/lib/form-state";
-import { saveWord } from "@/lib/words";
+import { saveWord, updateNote } from "@/lib/words";
+
+const MAX_NOTE_LENGTH = 500;
+
+function wordIdFrom(formData: FormData) {
+  const wordId = Number(formData.get("wordId"));
+  return Number.isInteger(wordId) && wordId > 0 ? wordId : null;
+}
 
 export async function lookupWord(
   _previous: FormState,
@@ -26,4 +34,25 @@ export async function lookupWord(
     case "saved":
       redirect(`/words/${encodeURIComponent(word)}`);
   }
+}
+
+export async function saveNote(
+  _previous: FormState,
+  formData: FormData,
+): Promise<FormState> {
+  const wordId = wordIdFrom(formData);
+  const note = String(formData.get("note") ?? "").trim();
+
+  if (!wordId) {
+    return { error: "Couldn't save the note. Reload the page and try again." };
+  }
+  if (note.length > MAX_NOTE_LENGTH) {
+    return { error: `Keep the note under ${MAX_NOTE_LENGTH} characters.` };
+  }
+  if (!(await updateNote(wordId, note || null))) {
+    return { error: "Couldn't save the note. Try again." };
+  }
+
+  refresh();
+  return { message: "Note saved." };
 }

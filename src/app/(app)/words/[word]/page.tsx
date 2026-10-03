@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { AudioButton } from "@/components/audio-button";
+import { NoteForm } from "@/components/note-form";
 import { cleanQuery } from "@/lib/dictionary";
 import { getMyWord } from "@/lib/words";
 
@@ -75,6 +76,8 @@ async function WordDetail({ params }: Pick<Props, "params">) {
           )}
         </section>
       ))}
+
+      <NoteForm key={entry.wordId} wordId={entry.wordId} note={entry.note} />
 
       <p className="text-sm font-medium text-ink/75">Added {addedOn}</p>
     </article>

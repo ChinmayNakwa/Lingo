@@ -120,3 +120,20 @@ export async function getMyWord(word: string): Promise<WordDetail | null> {
     addedAt: data.created_at,
   };
 }
+
+export async function updateNote(
+  wordId: number,
+  note: string | null,
+): Promise<boolean> {
+  const { supabase, userId } = await requireUser();
+
+  const { error } = await supabase
+    .from("user_words")
+    .update({ note })
+    .eq("user_id", userId)
+    .eq("word_id", wordId);
+  if (error) {
+    console.error("Saving the note failed", error);
+  }
+  return !error;
+}
