@@ -137,3 +137,17 @@ export async function updateNote(
   }
   return !error;
 }
+
+export async function removeWord(wordId: number): Promise<boolean> {
+  const { supabase, userId } = await requireUser();
+
+  const { error } = await supabase
+    .from("user_words")
+    .delete()
+    .eq("user_id", userId)
+    .eq("word_id", wordId);
+  if (error) {
+    console.error("Removing the word failed", error);
+  }
+  return !error;
+}

@@ -4,7 +4,7 @@ import { refresh } from "next/cache";
 import { redirect } from "next/navigation";
 import { cleanQuery } from "@/lib/dictionary";
 import type { FormState } from "@/lib/form-state";
-import { saveWord, updateNote } from "@/lib/words";
+import { removeWord, saveWord, updateNote } from "@/lib/words";
 
 const MAX_NOTE_LENGTH = 500;
 
@@ -55,4 +55,12 @@ export async function saveNote(
 
   refresh();
   return { message: "Note saved." };
+}
+
+export async function deleteWord(formData: FormData) {
+  const wordId = wordIdFrom(formData);
+  if (!wordId || !(await removeWord(wordId))) {
+    throw new Error("Couldn't remove the word.");
+  }
+  redirect("/");
 }

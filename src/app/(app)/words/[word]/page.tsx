@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
+import { deleteWord } from "@/app/actions/words";
 import { AudioButton } from "@/components/audio-button";
 import { NoteForm } from "@/components/note-form";
 import { cleanQuery } from "@/lib/dictionary";
@@ -41,7 +42,7 @@ async function WordDetail({ params }: Pick<Props, "params">) {
     <article className="mx-auto flex max-w-2xl flex-col gap-5">
       <header className="card flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <h1 className="text-4xl leading-tight font-extrabold break-words text-grape">
+          <h1 className="text-4xl leading-tight font-extrabold wrap-break-word text-grape">
             {entry.word}
           </h1>
           {entry.phonetic && <p className="font-medium">{entry.phonetic}</p>}
@@ -79,7 +80,15 @@ async function WordDetail({ params }: Pick<Props, "params">) {
 
       <NoteForm key={entry.wordId} wordId={entry.wordId} note={entry.note} />
 
-      <p className="text-sm font-medium text-ink/75">Added {addedOn}</p>
+      <footer className="flex flex-wrap items-center justify-between gap-3">
+        <p className="text-sm font-medium text-ink/75">Added {addedOn}</p>
+        <form action={deleteWord}>
+          <input type="hidden" name="wordId" value={entry.wordId} />
+          <button type="submit" className="chip cursor-pointer">
+            Remove from my words
+          </button>
+        </form>
+      </footer>
     </article>
   );
 }
