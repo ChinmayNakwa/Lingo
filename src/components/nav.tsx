@@ -3,7 +3,10 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-const tabs = [{ href: "/", label: "Search" }];
+const tabs = [
+  { href: "/", label: "Search" },
+  { href: "/words", label: "My words" },
+];
 
 export function Nav({ className }: { className?: string }) {
   const pathname = usePathname();

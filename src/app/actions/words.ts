@@ -62,5 +62,5 @@ export async function deleteWord(formData: FormData) {
   if (!wordId || !(await removeWord(wordId))) {
     throw new Error("Couldn't remove the word.");
   }
-  redirect("/");
+  redirect("/words");
 }
