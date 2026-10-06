@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { deleteWord } from "@/app/actions/words";
@@ -39,7 +40,10 @@ async function WordDetail({ params }: Pick<Props, "params">) {
   });
 
   return (
-    <article className="mx-auto flex max-w-2xl flex-col gap-5">
+    <article className="mx-auto flex max-w-2xl flex-col gap-5 lg:mx-0">
+      <Link href="/words" className="font-bold text-grape lg:hidden">
+        ← My words
+      </Link>
       <header className="card flex items-start justify-between gap-3">
         <div className="min-w-0">
           <h1 className="text-4xl leading-tight font-extrabold wrap-break-word text-grape">

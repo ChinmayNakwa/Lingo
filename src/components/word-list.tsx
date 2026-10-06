@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useId, useState } from "react";
 import {
   availableLetters,
   filterWords,
@@ -30,6 +30,7 @@ export function WordList({ words }: { words: SavedWord[] }) {
   const [sort, setSort] = useState<WordSort>("recent");
   const [letter, setLetter] = useState<string | null>(null);
   const [text, setText] = useState("");
+  const findId = useId();
 
   if (words.length === 0) {
     return (
@@ -46,11 +47,11 @@ export function WordList({ words }: { words: SavedWord[] }) {
 
   return (
     <div className="flex flex-col gap-4">
-      <label htmlFor="find" className="sr-only">
+      <label htmlFor={findId} className="sr-only">
         Find in my words
       </label>
       <input
-        id="find"
+        id={findId}
         type="search"
         value={text}
         onChange={(event) => setText(event.target.value)}
