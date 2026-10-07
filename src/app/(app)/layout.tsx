@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Suspense } from "react";
 import { signOut } from "@/app/actions/auth";
+import { Hud } from "@/components/hud";
 import { Nav } from "@/components/nav";
 
 export default function AppLayout({ children }: LayoutProps<"/">) {
@@ -15,6 +16,9 @@ export default function AppLayout({ children }: LayoutProps<"/">) {
             <Nav className="hidden gap-1 sm:flex" />
           </Suspense>
           <div className="ml-auto flex flex-wrap items-center gap-2">
+            <Suspense>
+              <Hud />
+            </Suspense>
             <form action={signOut}>
               <button type="submit" className="chip cursor-pointer">
                 Sign out
