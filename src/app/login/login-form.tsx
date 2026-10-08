@@ -1,21 +1,13 @@
 "use client";
 
-import { useSearchParams } from "next/navigation";
 import { useActionState } from "react";
 import { signInWithEmail, signInWithGoogle } from "@/app/actions/auth";
 
 export function LoginForm({ googleEnabled }: { googleEnabled: boolean }) {
   const [state, formAction, pending] = useActionState(signInWithEmail, null);
-  const linkFailed = useSearchParams().get("error") === "link";
 
   return (
     <div className="flex flex-col gap-4">
-      {linkFailed && !state && (
-        <p role="alert" className="font-bold">
-          That sign-in link didn&apos;t work. Request a new one below.
-        </p>
-      )}
-
       <form action={formAction} className="flex flex-col gap-3">
         <label htmlFor="email" className="font-bold">
           Email

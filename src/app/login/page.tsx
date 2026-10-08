@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import { LinkError } from "./link-error";
 import { LoginForm } from "./login-form";
 
 export default function LoginPage() {
@@ -14,10 +15,11 @@ export default function LoginPage() {
           Catch new words. Use them. Keep them.
         </p>
       </div>
-      <section className="card">
+      <section className="card flex flex-col gap-4">
         <Suspense>
-          <LoginForm googleEnabled={googleEnabled} />
+          <LinkError />
         </Suspense>
+        <LoginForm googleEnabled={googleEnabled} />
       </section>
     </main>
   );
