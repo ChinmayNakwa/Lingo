@@ -1,36 +1,71 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Lingo
 
-## Getting Started
+A vocabulary app for the words you meet while reading. Look a word up and it is saved with its meaning, pronunciation and examples. Browse your collection by recency or alphabet.
 
-First, run the development server:
+Built with Next.js 16, Supabase and Tailwind 4. Everything runs on free tiers.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## Setup
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+You need Node 22 or newer and a free [Supabase](https://supabase.com) account.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+1. Install dependencies:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+   ```bash
+   npm install
+   ```
 
-## Learn More
+2. Create a Supabase project. In its SQL editor, run `supabase/migrations/0001_words.sql`.
 
-To learn more about Next.js, take a look at the following resources:
+3. Copy the env template and fill in the three keys from **Project Settings > API**:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+   ```bash
+   cp .env.example .env.local
+   ```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+4. In **Authentication > URL Configuration**, add `http://localhost:3000/auth/callback` to the redirect URLs.
 
-## Deploy on Vercel
+5. Start the app:
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+   ```bash
+   npm run dev
+   ```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Open http://localhost:3000 and sign in with your email.
+
+### Google sign-in (optional)
+
+Supabase's built-in email sender is rate-limited and meant for testing. To let other people sign in, enable the Google provider under **Authentication > Providers**, then set `NEXT_PUBLIC_GOOGLE_SIGN_IN=true`.
+
+## Scripts
+
+| Command | What it does |
+|---|---|
+| `npm run dev` | Start the dev server |
+| `npm run build` | Production build |
+| `npm run lint` | ESLint |
+| `npm run typecheck` | Generate route types, then type-check |
+| `npm test` | Unit tests (Vitest) |
+
+## Project layout
+
+| Path | Contents |
+|---|---|
+| `src/app` | Routes, layouts and Server Actions |
+| `src/components` | UI components |
+| `src/lib` | Data access (server only) and pure logic with tests |
+| `src/proxy.ts` | Refreshes the session and redirects signed-out visitors |
+| `supabase/migrations` | Database schema and access rules |
+
+Row-level security in the database is the access boundary: each user can only read and change their own words. The shared `words` table is filled by the server only.
+
+## Deploy
+
+1. Push the repo to GitHub and import it in [Vercel](https://vercel.com).
+2. Add the same environment variables in the Vercel project settings.
+3. Add `https://<your-domain>/auth/callback` to Supabase's redirect URLs.
+
+Free Supabase projects pause after a week without activity. Restore one from the Supabase dashboard.
+
+## Definitions
+
+Word data comes from the [Free Dictionary API](https://dictionaryapi.dev) and is cached in the `words` table after the first lookup.
