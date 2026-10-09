@@ -46,18 +46,21 @@ export type Database = {
           user_id: string;
           word_id: number;
           note: string | null;
+          source: string | null;
           created_at: string;
         };
         Insert: {
           user_id?: string;
           word_id: number;
           note?: string | null;
+          source?: string | null;
           created_at?: string;
         };
         Update: {
           user_id?: string;
           word_id?: number;
           note?: string | null;
+          source?: string | null;
           created_at?: string;
         };
         Relationships: [

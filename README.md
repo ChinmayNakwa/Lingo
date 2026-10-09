@@ -14,7 +14,7 @@ You need Node 22 or newer and a free [Supabase](https://supabase.com) account.
    npm install
    ```
 
-2. Create a Supabase project. In its SQL editor, run `supabase/migrations/0001_words.sql`.
+2. Create a Supabase project. In its SQL editor, run each file in `supabase/migrations` in order.
 
 3. Copy the env template and fill in the three keys from **Project Settings > API**:
 
