@@ -4,6 +4,7 @@ import {
   fromFallback,
   isBetterEntry,
   normalise,
+  pickSuggestions,
 } from "./dictionary";
 
 describe("cleanQuery", () => {
@@ -165,5 +166,31 @@ describe("isBetterEntry", () => {
 
   it("rejects a missing entry", () => {
     expect(isBetterEntry(null, null)).toBe(false);
+  });
+});
+
+describe("pickSuggestions", () => {
+  it("drops the original word, bad entries and repeats, and keeps three", () => {
+    const results = [
+      { word: "definately", score: 9 },
+      { word: "Definitely", score: 8 },
+      { word: "definitely", score: 7 },
+      { word: "route 66", score: 6 },
+      { score: 5 },
+      { word: "delicately", score: 4 },
+      { word: "ice cream", score: 3 },
+      { word: "finally", score: 2 },
+    ];
+
+    expect(pickSuggestions("definately", results)).toEqual([
+      "definitely",
+      "delicately",
+      "ice cream",
+    ]);
+  });
+
+  it("gives nothing for an unexpected response", () => {
+    expect(pickSuggestions("cat", null)).toEqual([]);
+    expect(pickSuggestions("cat", { message: "error" })).toEqual([]);
   });
 });

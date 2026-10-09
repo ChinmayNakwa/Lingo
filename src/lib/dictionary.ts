@@ -33,6 +33,9 @@ const FALLBACK_URL = "https://freedictionaryapi.com/api/v1/entries/en/";
 const FALLBACK_TIMEOUT_MS = 8000;
 // Wiktionary lists related words among its examples, e.g. "Near-synonym: brief".
 const RELATION_NOTE = /^(near-)?(synonym|antonym|hypernym|hyponym|coordinate term)s?:/i;
+const SUGGEST_URL = "https://api.datamuse.com/words";
+const SUGGEST_TIMEOUT_MS = 3000;
+const MAX_SUGGESTIONS = 3;
 const WORD_PATTERN = /^[a-z][a-z' -]{0,49}$/;
 const MAX_DEFINITIONS = 3;
 const MAX_SYNONYMS = 6;
@@ -154,4 +157,31 @@ export async function fetchDefinition(
 
   const body = await fetchJson(FALLBACK_URL + path, FALLBACK_TIMEOUT_MS);
   return body ? normalise(word, fromFallback(body as FallbackBody)) : null;
+}
+
+// Keeps the usable spellings from a Datamuse response, best match first.
+export function pickSuggestions(word: string, results: unknown): string[] {
+  if (!Array.isArray(results)) {
+    return [];
+  }
+
+  const picked = new Set<string>();
+  for (const item of results as { word?: unknown }[]) {
+    const candidate =
+      typeof item?.word === "string" ? cleanQuery(item.word) : null;
+    if (candidate && candidate !== word) {
+      picked.add(candidate);
+    }
+  }
+  return [...picked].slice(0, MAX_SUGGESTIONS);
+}
+
+// Close spellings for a word the dictionary does not have. Empty on any failure.
+export async function suggestSpellings(word: string): Promise<string[]> {
+  try {
+    const url = `${SUGGEST_URL}?sp=${encodeURIComponent(word)}&max=6`;
+    return pickSuggestions(word, await fetchJson(url, SUGGEST_TIMEOUT_MS));
+  } catch {
+    return [];
+  }
 }

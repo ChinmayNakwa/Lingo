@@ -69,3 +69,5 @@ Free Supabase projects pause after a week without activity. Restore one from the
 ## Definitions
 
 Word data comes from the [Free Dictionary API](https://dictionaryapi.dev) and is cached in the `words` table after the first lookup. When that API is down, lookups fall back to [freedictionaryapi.com](https://freedictionaryapi.com), which serves [Wiktionary](https://en.wiktionary.org) data under CC BY-SA 4.0 and has no audio.
+
+Spelling suggestions for words that are not found come from [Datamuse](https://www.datamuse.com/api/).
