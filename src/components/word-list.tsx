@@ -43,7 +43,7 @@ export function WordList({ words }: { words: SavedWord[] }) {
     );
   }
 
-  const visible = filterWords(words, { sort, letter, text });
+  const visible = filterWords(words, { sort, letter, day: null, text });
 
   return (
     <div className="flex flex-col gap-4">
