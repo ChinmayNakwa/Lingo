@@ -6,8 +6,10 @@ import {
   availableLetters,
   filterWords,
   type WordSort,
+  wordsPerDay,
 } from "@/lib/word-filter";
 import type { SavedWord } from "@/lib/words";
+import { DayPicker } from "./day-picker";
 
 const sorts: { value: WordSort; label: string }[] = [
   { value: "recent", label: "Recent" },
@@ -29,6 +31,7 @@ function shortDate(iso: string) {
 export function WordList({ words }: { words: SavedWord[] }) {
   const [sort, setSort] = useState<WordSort>("recent");
   const [letter, setLetter] = useState<string | null>(null);
+  const [day, setDay] = useState<string | null>(null);
   const [text, setText] = useState("");
   const findId = useId();
 
@@ -43,7 +46,7 @@ export function WordList({ words }: { words: SavedWord[] }) {
     );
   }
 
-  const visible = filterWords(words, { sort, letter, day: null, text });
+  const visible = filterWords(words, { sort, letter, day, text });
 
   return (
     <div className="flex flex-col gap-4">
@@ -99,6 +102,8 @@ export function WordList({ words }: { words: SavedWord[] }) {
           </button>
         ))}
       </div>
+
+      <DayPicker counts={wordsPerDay(words)} day={day} onChange={setDay} />
 
       <p className="text-sm font-bold" role="status">
         {visible.length === words.length
