@@ -1,7 +1,11 @@
 import "server-only";
 import { cache } from "react";
 import { requireUser } from "./auth";
-import { fetchDefinition, type DictionaryEntry } from "./dictionary";
+import {
+  fetchDefinition,
+  isBetterEntry,
+  type DictionaryEntry,
+} from "./dictionary";
 import { createAdminClient } from "./supabase/admin";
 import type { Meaning } from "./supabase/database.types";
 
@@ -23,6 +27,8 @@ export type WordDetail = {
 };
 
 export type SaveResult = "saved" | "not-found" | "unreachable" | "failed";
+
+export type RefreshResult = "has-audio" | "no-audio" | "failed";
 
 export async function saveWord(word: string): Promise<SaveResult> {
   const { supabase, userId } = await requireUser();
@@ -150,4 +156,45 @@ export async function removeWord(wordId: number): Promise<boolean> {
     console.error("Removing the word failed", error);
   }
   return !error;
+}
+
+// Fetches a saved word again and updates the shared cache if that improves it.
+export async function refreshDefinition(
+  wordId: number,
+): Promise<RefreshResult> {
+  const { supabase, userId } = await requireUser();
+
+  const { data: saved } = await supabase
+    .from("user_words")
+    .select("words!inner(word, audio_url)")
+    .eq("user_id", userId)
+    .eq("word_id", wordId)
+    .maybeSingle();
+  if (!saved) {
+    return "failed";
+  }
+
+  let fresh: DictionaryEntry | null;
+  try {
+    fresh = await fetchDefinition(saved.words.word);
+  } catch (error) {
+    console.error("Dictionary lookup failed", error);
+    return "failed";
+  }
+
+  if (isBetterEntry(saved.words.audio_url, fresh)) {
+    const { error } = await createAdminClient()
+      .from("words")
+      .update({
+        phonetic: fresh.phonetic,
+        audio_url: fresh.audio_url,
+        meanings: fresh.meanings,
+      })
+      .eq("id", wordId);
+    if (error) {
+      console.error("Updating the word failed", error);
+      return "failed";
+    }
+  }
+  return fresh?.audio_url || saved.words.audio_url ? "has-audio" : "no-audio";
 }

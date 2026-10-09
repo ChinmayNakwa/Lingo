@@ -100,6 +100,14 @@ export function normalise(
   };
 }
 
+// A fresh entry replaces a stored one unless that would lose its audio.
+export function isBetterEntry(
+  storedAudioUrl: string | null,
+  fresh: DictionaryEntry | null,
+): fresh is DictionaryEntry {
+  return fresh !== null && (fresh.audio_url !== null || storedAudioUrl === null);
+}
+
 // Reshapes the fallback source's response into the first source's entries.
 export function fromFallback(body: FallbackBody): ApiEntry[] {
   return (body.entries ?? []).map((entry) => ({

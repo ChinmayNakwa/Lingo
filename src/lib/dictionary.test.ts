@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { cleanQuery, fromFallback, normalise } from "./dictionary";
+import {
+  cleanQuery,
+  fromFallback,
+  isBetterEntry,
+  normalise,
+} from "./dictionary";
 
 describe("cleanQuery", () => {
   it("lowercases and trims", () => {
@@ -141,5 +146,24 @@ describe("fromFallback", () => {
   it("gives nothing for a word with no entries", () => {
     expect(normalise("zzz", fromFallback({ entries: [] }))).toBeNull();
     expect(normalise("zzz", fromFallback({}))).toBeNull();
+  });
+});
+
+describe("isBetterEntry", () => {
+  const silent = { word: "cat", phonetic: null, audio_url: null, meanings: [] };
+  const spoken = { ...silent, audio_url: "https://cdn.example/cat.mp3" };
+
+  it("accepts an entry with audio", () => {
+    expect(isBetterEntry(null, spoken)).toBe(true);
+    expect(isBetterEntry("https://cdn.example/old.mp3", spoken)).toBe(true);
+  });
+
+  it("accepts a silent entry only when nothing is lost", () => {
+    expect(isBetterEntry(null, silent)).toBe(true);
+    expect(isBetterEntry("https://cdn.example/old.mp3", silent)).toBe(false);
+  });
+
+  it("rejects a missing entry", () => {
+    expect(isBetterEntry(null, null)).toBe(false);
   });
 });
