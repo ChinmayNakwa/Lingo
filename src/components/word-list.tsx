@@ -20,15 +20,21 @@ function toggleClass(pressed: boolean) {
   return `chip cursor-pointer ${pressed ? "bg-grape text-card" : ""}`;
 }
 
-function shortDate(iso: string) {
+function shortDate(iso: string, timeZone: string) {
   return new Date(iso).toLocaleDateString("en-GB", {
     day: "numeric",
     month: "short",
-    timeZone: "UTC",
+    timeZone,
   });
 }
 
-export function WordList({ words }: { words: SavedWord[] }) {
+export function WordList({
+  words,
+  timeZone,
+}: {
+  words: SavedWord[];
+  timeZone: string;
+}) {
   const [sort, setSort] = useState<WordSort>("recent");
   const [letter, setLetter] = useState<string | null>(null);
   const [day, setDay] = useState<string | null>(null);
@@ -46,7 +52,7 @@ export function WordList({ words }: { words: SavedWord[] }) {
     );
   }
 
-  const visible = filterWords(words, { sort, letter, day, text }, "UTC");
+  const visible = filterWords(words, { sort, letter, day, text }, timeZone);
 
   return (
     <div className="flex flex-col gap-4">
@@ -103,7 +109,11 @@ export function WordList({ words }: { words: SavedWord[] }) {
         ))}
       </div>
 
-      <DayPicker counts={wordsPerDay(words, "UTC")} day={day} onChange={setDay} />
+      <DayPicker
+        counts={wordsPerDay(words, timeZone)}
+        day={day}
+        onChange={setDay}
+      />
 
       <p className="text-sm font-bold" role="status">
         {visible.length === words.length
@@ -126,7 +136,7 @@ export function WordList({ words }: { words: SavedWord[] }) {
                     {item.word}
                   </span>
                   <span className="shrink-0 text-sm font-bold text-ink/75">
-                    {shortDate(item.addedAt)}
+                    {shortDate(item.addedAt, timeZone)}
                   </span>
                 </span>
                 <span className="line-clamp-1 font-medium">{item.gloss}</span>

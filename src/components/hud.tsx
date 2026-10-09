@@ -1,12 +1,13 @@
 import { streak } from "@/lib/streak";
+import { getTimeZone } from "@/lib/time-zone";
 import { getMyWords } from "@/lib/words";
 
 export async function Hud() {
-  const words = await getMyWords();
+  const [words, timeZone] = await Promise.all([getMyWords(), getTimeZone()]);
   const days = streak(
     words.map((item) => item.addedAt),
     new Date(),
-    "UTC",
+    timeZone,
   );
 
   return (

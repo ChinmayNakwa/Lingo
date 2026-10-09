@@ -5,6 +5,7 @@ import { deleteWord } from "@/app/actions/words";
 import { AudioButton } from "@/components/audio-button";
 import { NoteForm } from "@/components/note-form";
 import { cleanQuery } from "@/lib/dictionary";
+import { getTimeZone } from "@/lib/time-zone";
 import { getMyWord } from "@/lib/words";
 
 type Props = PageProps<"/words/[word]">;
@@ -36,7 +37,7 @@ async function WordDetail({ params }: Pick<Props, "params">) {
     day: "numeric",
     month: "short",
     year: "numeric",
-    timeZone: "UTC",
+    timeZone: await getTimeZone(),
   });
 
   return (

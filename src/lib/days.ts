@@ -1,5 +1,7 @@
 // Calendar days as "2026-10-09" strings, read in a given time zone.
 
+export const TIME_ZONE_COOKIE = "tz";
+
 const formatters = new Map<string, Intl.DateTimeFormat>();
 
 function formatterFor(timeZone: string) {
