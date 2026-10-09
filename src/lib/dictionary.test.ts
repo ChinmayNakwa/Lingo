@@ -1,11 +1,5 @@
 import { describe, expect, it } from "vitest";
-import {
-  cleanQuery,
-  fromFallback,
-  isBetterEntry,
-  normalise,
-  pickSuggestions,
-} from "./dictionary";
+import { cleanQuery, normalise, pickSuggestions } from "./dictionary";
 
 describe("cleanQuery", () => {
   it("lowercases and trims", () => {
@@ -27,29 +21,23 @@ describe("cleanQuery", () => {
 
 describe("normalise", () => {
   it("merges entries by part of speech and caps definitions", () => {
-    const entry = normalise("run", [
-      {
-        phonetic: "/rʌn/",
-        meanings: [
-          {
-            partOfSpeech: "verb",
-            definitions: [
-              { definition: "one", example: "I run." },
-              { definition: "two" },
-            ],
-          },
-        ],
-      },
-      {
-        meanings: [
-          {
-            partOfSpeech: "verb",
-            definitions: [{ definition: "three" }, { definition: "four" }],
-          },
-          { partOfSpeech: "noun", definitions: [{ definition: "a jog" }] },
-        ],
-      },
-    ]);
+    const entry = normalise("run", {
+      entries: [
+        {
+          partOfSpeech: "verb",
+          pronunciations: [{ text: "/rʌn/" }],
+          senses: [
+            { definition: "one", examples: ["I run."] },
+            { definition: "two" },
+          ],
+        },
+        {
+          partOfSpeech: "verb",
+          senses: [{ definition: "three" }, { definition: "four" }],
+        },
+        { partOfSpeech: "noun", senses: [{ definition: "a jog" }] },
+      ],
+    });
 
     expect(entry?.phonetic).toBe("/rʌn/");
     expect(entry?.meanings.map((meaning) => meaning.partOfSpeech)).toEqual([
@@ -64,17 +52,15 @@ describe("normalise", () => {
   });
 
   it("dedupes and caps synonyms from both levels", () => {
-    const entry = normalise("big", [
-      {
-        meanings: [
-          {
-            partOfSpeech: "adjective",
-            synonyms: ["large", "huge", "vast", "giant", "great", "grand"],
-            definitions: [{ definition: "of great size", synonyms: ["large", "tall"] }],
-          },
-        ],
-      },
-    ]);
+    const entry = normalise("big", {
+      entries: [
+        {
+          partOfSpeech: "adjective",
+          synonyms: ["large", "huge", "vast", "giant", "great", "grand"],
+          senses: [{ definition: "of great size", synonyms: ["large", "tall"] }],
+        },
+      ],
+    });
 
     expect(entry?.meanings[0].synonyms).toEqual([
       "large",
@@ -86,51 +72,28 @@ describe("normalise", () => {
     ]);
   });
 
-  it("picks the first audio clip and makes it https", () => {
-    const entry = normalise("cat", [
-      {
-        phonetics: [{ text: "/kæt/" }, { audio: "//cdn.example/cat.mp3" }],
-        meanings: [{ partOfSpeech: "noun", definitions: [{ definition: "a pet" }] }],
-      },
-    ]);
-
-    expect(entry?.phonetic).toBe("/kæt/");
-    expect(entry?.audio_url).toBe("https://cdn.example/cat.mp3");
-  });
-
-  it("returns null when nothing has a definition", () => {
-    expect(normalise("zzz", [{ meanings: [{ partOfSpeech: "noun" }] }])).toBeNull();
-    expect(normalise("zzz", [])).toBeNull();
-  });
-});
-
-describe("fromFallback", () => {
-  it("reshapes entries so normalise can read them", () => {
-    const entry = normalise(
-      "laconic",
-      fromFallback({
-        entries: [
-          {
-            partOfSpeech: "adjective",
-            pronunciations: [{ text: "/ləˈkɒnɪk/" }, { text: "/ləˈkɑnɪk/" }],
-            synonyms: ["brief"],
-            senses: [
-              {
-                definition: "using few words",
-                examples: ["Near-synonym: brief", "A laconic reply."],
-                synonyms: ["terse"],
-              },
-              { definition: "of a speaker, concise", examples: ["Synonyms: curt, terse"] },
-            ],
-          },
-        ],
-      }),
-    );
+  it("picks the first pronunciation and skips related-word notes", () => {
+    const entry = normalise("laconic", {
+      entries: [
+        {
+          partOfSpeech: "adjective",
+          pronunciations: [{ text: "/ləˈkɒnɪk/" }, { text: "/ləˈkɑnɪk/" }],
+          synonyms: ["brief"],
+          senses: [
+            {
+              definition: "using few words",
+              examples: ["Near-synonym: brief", "A laconic reply."],
+              synonyms: ["terse"],
+            },
+            { definition: "of a speaker, concise", examples: ["Synonyms: curt, terse"] },
+          ],
+        },
+      ],
+    });
 
     expect(entry).toEqual({
       word: "laconic",
       phonetic: "/ləˈkɒnɪk/",
-      audio_url: null,
       meanings: [
         {
           partOfSpeech: "adjective",
@@ -144,28 +107,10 @@ describe("fromFallback", () => {
     });
   });
 
-  it("gives nothing for a word with no entries", () => {
-    expect(normalise("zzz", fromFallback({ entries: [] }))).toBeNull();
-    expect(normalise("zzz", fromFallback({}))).toBeNull();
-  });
-});
-
-describe("isBetterEntry", () => {
-  const silent = { word: "cat", phonetic: null, audio_url: null, meanings: [] };
-  const spoken = { ...silent, audio_url: "https://cdn.example/cat.mp3" };
-
-  it("accepts an entry with audio", () => {
-    expect(isBetterEntry(null, spoken)).toBe(true);
-    expect(isBetterEntry("https://cdn.example/old.mp3", spoken)).toBe(true);
-  });
-
-  it("accepts a silent entry only when nothing is lost", () => {
-    expect(isBetterEntry(null, silent)).toBe(true);
-    expect(isBetterEntry("https://cdn.example/old.mp3", silent)).toBe(false);
-  });
-
-  it("rejects a missing entry", () => {
-    expect(isBetterEntry(null, null)).toBe(false);
+  it("returns null when nothing has a definition", () => {
+    expect(normalise("zzz", { entries: [{ partOfSpeech: "noun" }] })).toBeNull();
+    expect(normalise("zzz", { entries: [] })).toBeNull();
+    expect(normalise("zzz", {})).toBeNull();
   });
 });
 

@@ -3,21 +3,10 @@ import type { Meaning } from "./supabase/database.types";
 export type DictionaryEntry = {
   word: string;
   phonetic: string | null;
-  audio_url: string | null;
   meanings: Meaning[];
 };
 
-type ApiEntry = {
-  phonetic?: string;
-  phonetics?: { text?: string; audio?: string }[];
-  meanings?: {
-    partOfSpeech?: string;
-    synonyms?: string[];
-    definitions?: { definition?: string; example?: string; synonyms?: string[] }[];
-  }[];
-};
-
-type FallbackBody = {
+type ApiBody = {
   entries?: {
     partOfSpeech?: string;
     pronunciations?: { text?: string }[];
@@ -26,11 +15,9 @@ type FallbackBody = {
   }[];
 };
 
-const API_URL = "https://api.dictionaryapi.dev/api/v2/entries/en/";
-const API_TIMEOUT_MS = 4000;
-// Wiktionary data, used when the first source is down. It has no audio.
-const FALLBACK_URL = "https://freedictionaryapi.com/api/v1/entries/en/";
-const FALLBACK_TIMEOUT_MS = 8000;
+// Wiktionary data. It has no audio.
+const API_URL = "https://freedictionaryapi.com/api/v1/entries/en/";
+const API_TIMEOUT_MS = 8000;
 // Wiktionary lists related words among its examples, e.g. "Near-synonym: brief".
 const RELATION_NOTE = /^(near-)?(synonym|antonym|hypernym|hyponym|coordinate term)s?:/i;
 const SUGGEST_URL = "https://api.datamuse.com/words";
@@ -45,36 +32,33 @@ export function cleanQuery(input: string): string | null {
   return WORD_PATTERN.test(word) ? word : null;
 }
 
-export function normalise(
-  word: string,
-  entries: ApiEntry[],
-): DictionaryEntry | null {
+export function normalise(word: string, body: ApiBody): DictionaryEntry | null {
+  const entries = body.entries ?? [];
   const byPartOfSpeech = new Map<string, Meaning>();
 
   for (const entry of entries) {
-    for (const meaning of entry.meanings ?? []) {
-      const partOfSpeech = meaning.partOfSpeech || "other";
-      const merged = byPartOfSpeech.get(partOfSpeech) ?? {
-        partOfSpeech,
-        definitions: [],
-        synonyms: [],
-      };
+    const partOfSpeech = entry.partOfSpeech || "other";
+    const merged = byPartOfSpeech.get(partOfSpeech) ?? {
+      partOfSpeech,
+      definitions: [],
+      synonyms: [],
+    };
 
-      for (const item of meaning.definitions ?? []) {
-        if (!item.definition) continue;
-        if (merged.definitions.length < MAX_DEFINITIONS) {
-          merged.definitions.push(
-            item.example
-              ? { definition: item.definition, example: item.example }
-              : { definition: item.definition },
-          );
-        }
-        merged.synonyms.push(...(item.synonyms ?? []));
+    for (const sense of entry.senses ?? []) {
+      if (!sense.definition) continue;
+      if (merged.definitions.length < MAX_DEFINITIONS) {
+        const example = sense.examples?.find((item) => !RELATION_NOTE.test(item));
+        merged.definitions.push(
+          example
+            ? { definition: sense.definition, example }
+            : { definition: sense.definition },
+        );
       }
-      merged.synonyms.push(...(meaning.synonyms ?? []));
-
-      byPartOfSpeech.set(partOfSpeech, merged);
+      merged.synonyms.push(...(sense.synonyms ?? []));
     }
+    merged.synonyms.push(...(entry.synonyms ?? []));
+
+    byPartOfSpeech.set(partOfSpeech, merged);
   }
 
   const meanings = [...byPartOfSpeech.values()]
@@ -88,45 +72,12 @@ export function normalise(
     return null;
   }
 
-  const phonetics = entries.flatMap((entry) => entry.phonetics ?? []);
   const phonetic =
-    entries.find((entry) => entry.phonetic)?.phonetic ??
-    phonetics.find((item) => item.text)?.text ??
-    null;
-  const audio = phonetics.find((item) => item.audio)?.audio ?? null;
+    entries
+      .flatMap((entry) => entry.pronunciations ?? [])
+      .find((item) => item.text)?.text ?? null;
 
-  return {
-    word,
-    phonetic,
-    audio_url: audio?.startsWith("//") ? `https:${audio}` : audio,
-    meanings,
-  };
-}
-
-// A fresh entry replaces a stored one unless that would lose its audio.
-export function isBetterEntry(
-  storedAudioUrl: string | null,
-  fresh: DictionaryEntry | null,
-): fresh is DictionaryEntry {
-  return fresh !== null && (fresh.audio_url !== null || storedAudioUrl === null);
-}
-
-// Reshapes the fallback source's response into the first source's entries.
-export function fromFallback(body: FallbackBody): ApiEntry[] {
-  return (body.entries ?? []).map((entry) => ({
-    phonetic: entry.pronunciations?.find((item) => item.text)?.text,
-    meanings: [
-      {
-        partOfSpeech: entry.partOfSpeech,
-        synonyms: entry.synonyms,
-        definitions: (entry.senses ?? []).map((sense) => ({
-          definition: sense.definition,
-          example: sense.examples?.find((example) => !RELATION_NOTE.test(example)),
-          synonyms: sense.synonyms,
-        })),
-      },
-    ],
-  }));
+  return { word, phonetic, meanings };
 }
 
 // Returns null on a 404; throws when the source is unreachable.
@@ -146,17 +97,11 @@ async function fetchJson(url: string, timeoutMs: number): Promise<unknown> {
 export async function fetchDefinition(
   word: string,
 ): Promise<DictionaryEntry | null> {
-  const path = encodeURIComponent(word);
-
-  try {
-    const entries = await fetchJson(API_URL + path, API_TIMEOUT_MS);
-    return Array.isArray(entries) ? normalise(word, entries) : null;
-  } catch (error) {
-    console.warn(`Dictionary source failed, trying the fallback: ${error}`);
-  }
-
-  const body = await fetchJson(FALLBACK_URL + path, FALLBACK_TIMEOUT_MS);
-  return body ? normalise(word, fromFallback(body as FallbackBody)) : null;
+  const body = await fetchJson(
+    API_URL + encodeURIComponent(word),
+    API_TIMEOUT_MS,
+  );
+  return body ? normalise(word, body as ApiBody) : null;
 }
 
 // Keeps the usable spellings from a Datamuse response, best match first.
