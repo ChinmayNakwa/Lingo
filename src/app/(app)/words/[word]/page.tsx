@@ -3,7 +3,6 @@ import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { deleteWord } from "@/app/actions/words";
 import { AudioButton } from "@/components/audio-button";
-import { AudioRetry } from "@/components/audio-retry";
 import { NoteForm } from "@/components/note-form";
 import { cleanQuery } from "@/lib/dictionary";
 import { getTimeZone } from "@/lib/time-zone";
@@ -53,10 +52,8 @@ async function WordDetail({ params }: Pick<Props, "params">) {
           </h1>
           {entry.phonetic && <p className="font-medium">{entry.phonetic}</p>}
         </div>
-        {entry.audioUrl ? (
+        {entry.audioUrl && (
           <AudioButton src={entry.audioUrl} word={entry.word} />
-        ) : (
-          <AudioRetry key={entry.wordId} wordId={entry.wordId} />
         )}
       </header>
 

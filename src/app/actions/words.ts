@@ -4,12 +4,7 @@ import { refresh } from "next/cache";
 import { redirect } from "next/navigation";
 import { cleanQuery, suggestSpellings } from "@/lib/dictionary";
 import type { FormState } from "@/lib/form-state";
-import {
-  refreshDefinition,
-  removeWord,
-  saveWord,
-  updateNote,
-} from "@/lib/words";
+import { removeWord, saveWord, updateNote } from "@/lib/words";
 
 const MAX_NOTE_LENGTH = 500;
 const MAX_SOURCE_LENGTH = 200;
@@ -68,23 +63,6 @@ export async function saveNote(
 
   refresh();
   return { message: "Saved." };
-}
-
-export async function refreshWord(
-  _previous: FormState,
-  formData: FormData,
-): Promise<FormState> {
-  const wordId = wordIdFrom(formData);
-
-  switch (wordId ? await refreshDefinition(wordId) : "failed") {
-    case "failed":
-      return { error: "Couldn't reach the dictionary. Try again." };
-    case "no-audio":
-      return { message: "Still no audio. Try again later." };
-    case "has-audio":
-      refresh();
-      return { message: "Updated." };
-  }
 }
 
 export async function deleteWord(formData: FormData) {
