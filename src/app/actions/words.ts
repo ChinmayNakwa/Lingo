@@ -2,7 +2,7 @@
 
 import { refresh } from "next/cache";
 import { redirect } from "next/navigation";
-import { cleanQuery } from "@/lib/dictionary";
+import { cleanQuery, suggestSpellings } from "@/lib/dictionary";
 import type { FormState } from "@/lib/form-state";
 import {
   refreshDefinition,
@@ -31,6 +31,7 @@ export async function lookupWord(
     case "not-found":
       return {
         error: `No dictionary entry for "${word}". Check the spelling and try again.`,
+        suggestions: await suggestSpellings(word),
       };
     case "unreachable":
       return { error: "The dictionary is unreachable right now. Try again." };
