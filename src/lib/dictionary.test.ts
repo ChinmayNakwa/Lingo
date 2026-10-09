@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { cleanQuery, normalise } from "./dictionary";
+import { cleanQuery, fromFallback, normalise } from "./dictionary";
 
 describe("cleanQuery", () => {
   it("lowercases and trims", () => {
@@ -95,5 +95,51 @@ describe("normalise", () => {
   it("returns null when nothing has a definition", () => {
     expect(normalise("zzz", [{ meanings: [{ partOfSpeech: "noun" }] }])).toBeNull();
     expect(normalise("zzz", [])).toBeNull();
+  });
+});
+
+describe("fromFallback", () => {
+  it("reshapes entries so normalise can read them", () => {
+    const entry = normalise(
+      "laconic",
+      fromFallback({
+        entries: [
+          {
+            partOfSpeech: "adjective",
+            pronunciations: [{ text: "/ləˈkɒnɪk/" }, { text: "/ləˈkɑnɪk/" }],
+            synonyms: ["brief"],
+            senses: [
+              {
+                definition: "using few words",
+                examples: ["Near-synonym: brief", "A laconic reply."],
+                synonyms: ["terse"],
+              },
+              { definition: "of a speaker, concise", examples: ["Synonyms: curt, terse"] },
+            ],
+          },
+        ],
+      }),
+    );
+
+    expect(entry).toEqual({
+      word: "laconic",
+      phonetic: "/ləˈkɒnɪk/",
+      audio_url: null,
+      meanings: [
+        {
+          partOfSpeech: "adjective",
+          definitions: [
+            { definition: "using few words", example: "A laconic reply." },
+            { definition: "of a speaker, concise" },
+          ],
+          synonyms: ["terse", "brief"],
+        },
+      ],
+    });
+  });
+
+  it("gives nothing for a word with no entries", () => {
+    expect(normalise("zzz", fromFallback({ entries: [] }))).toBeNull();
+    expect(normalise("zzz", fromFallback({}))).toBeNull();
   });
 });

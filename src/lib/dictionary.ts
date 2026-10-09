@@ -17,7 +17,22 @@ type ApiEntry = {
   }[];
 };
 
+type FallbackBody = {
+  entries?: {
+    partOfSpeech?: string;
+    pronunciations?: { text?: string }[];
+    synonyms?: string[];
+    senses?: { definition?: string; examples?: string[]; synonyms?: string[] }[];
+  }[];
+};
+
 const API_URL = "https://api.dictionaryapi.dev/api/v2/entries/en/";
+const API_TIMEOUT_MS = 4000;
+// Wiktionary data, used when the first source is down. It has no audio.
+const FALLBACK_URL = "https://freedictionaryapi.com/api/v1/entries/en/";
+const FALLBACK_TIMEOUT_MS = 8000;
+// Wiktionary lists related words among its examples, e.g. "Near-synonym: brief".
+const RELATION_NOTE = /^(near-)?(synonym|antonym|hypernym|hyponym|coordinate term)s?:/i;
 const WORD_PATTERN = /^[a-z][a-z' -]{0,49}$/;
 const MAX_DEFINITIONS = 3;
 const MAX_SYNONYMS = 6;
@@ -85,13 +100,27 @@ export function normalise(
   };
 }
 
-// Returns null when the dictionary has no entry; throws when it is unreachable.
-export async function fetchDefinition(
-  word: string,
-): Promise<DictionaryEntry | null> {
-  const response = await fetch(API_URL + encodeURIComponent(word), {
-    signal: AbortSignal.timeout(8000),
-  });
+// Reshapes the fallback source's response into the first source's entries.
+export function fromFallback(body: FallbackBody): ApiEntry[] {
+  return (body.entries ?? []).map((entry) => ({
+    phonetic: entry.pronunciations?.find((item) => item.text)?.text,
+    meanings: [
+      {
+        partOfSpeech: entry.partOfSpeech,
+        synonyms: entry.synonyms,
+        definitions: (entry.senses ?? []).map((sense) => ({
+          definition: sense.definition,
+          example: sense.examples?.find((example) => !RELATION_NOTE.test(example)),
+          synonyms: sense.synonyms,
+        })),
+      },
+    ],
+  }));
+}
+
+// Returns null on a 404; throws when the source is unreachable.
+async function fetchJson(url: string, timeoutMs: number): Promise<unknown> {
+  const response = await fetch(url, { signal: AbortSignal.timeout(timeoutMs) });
 
   if (response.status === 404) {
     return null;
@@ -99,7 +128,22 @@ export async function fetchDefinition(
   if (!response.ok) {
     throw new Error(`Dictionary API responded with ${response.status}`);
   }
+  return response.json();
+}
 
-  const entries: unknown = await response.json();
-  return Array.isArray(entries) ? normalise(word, entries) : null;
+// Returns null when the dictionary has no entry; throws when it is unreachable.
+export async function fetchDefinition(
+  word: string,
+): Promise<DictionaryEntry | null> {
+  const path = encodeURIComponent(word);
+
+  try {
+    const entries = await fetchJson(API_URL + path, API_TIMEOUT_MS);
+    return Array.isArray(entries) ? normalise(word, entries) : null;
+  } catch (error) {
+    console.warn(`Dictionary source failed, trying the fallback: ${error}`);
+  }
+
+  const body = await fetchJson(FALLBACK_URL + path, FALLBACK_TIMEOUT_MS);
+  return body ? normalise(word, fromFallback(body as FallbackBody)) : null;
 }
