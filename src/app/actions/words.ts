@@ -12,6 +12,7 @@ import {
 } from "@/lib/words";
 
 const MAX_NOTE_LENGTH = 500;
+const MAX_SOURCE_LENGTH = 200;
 
 function wordIdFrom(formData: FormData) {
   const wordId = Number(formData.get("wordId"));
@@ -48,6 +49,7 @@ export async function saveNote(
 ): Promise<FormState> {
   const wordId = wordIdFrom(formData);
   const note = String(formData.get("note") ?? "").trim();
+  const source = String(formData.get("source") ?? "").trim();
 
   if (!wordId) {
     return { error: "Couldn't save the note. Reload the page and try again." };
@@ -55,12 +57,17 @@ export async function saveNote(
   if (note.length > MAX_NOTE_LENGTH) {
     return { error: `Keep the note under ${MAX_NOTE_LENGTH} characters.` };
   }
-  if (!(await updateNote(wordId, note || null))) {
+  if (source.length > MAX_SOURCE_LENGTH) {
+    return {
+      error: `Keep where you met it under ${MAX_SOURCE_LENGTH} characters.`,
+    };
+  }
+  if (!(await updateNote(wordId, note || null, source || null))) {
     return { error: "Couldn't save the note. Try again." };
   }
 
   refresh();
-  return { message: "Note saved." };
+  return { message: "Saved." };
 }
 
 export async function refreshWord(

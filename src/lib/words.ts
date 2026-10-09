@@ -23,6 +23,7 @@ export type WordDetail = {
   audioUrl: string | null;
   meanings: Meaning[];
   note: string | null;
+  source: string | null;
   addedAt: string;
 };
 
@@ -105,7 +106,7 @@ export async function getMyWord(word: string): Promise<WordDetail | null> {
 
   const { data, error } = await supabase
     .from("user_words")
-    .select("word_id, note, created_at, words!inner(word, phonetic, audio_url, meanings)")
+    .select("word_id, note, source, created_at, words!inner(word, phonetic, audio_url, meanings)")
     .eq("user_id", userId)
     .eq("words.word", word)
     .maybeSingle();
@@ -123,6 +124,7 @@ export async function getMyWord(word: string): Promise<WordDetail | null> {
     audioUrl: data.words.audio_url,
     meanings: data.words.meanings,
     note: data.note,
+    source: data.source,
     addedAt: data.created_at,
   };
 }
@@ -130,12 +132,13 @@ export async function getMyWord(word: string): Promise<WordDetail | null> {
 export async function updateNote(
   wordId: number,
   note: string | null,
+  source: string | null,
 ): Promise<boolean> {
   const { supabase, userId } = await requireUser();
 
   const { error } = await supabase
     .from("user_words")
-    .update({ note })
+    .update({ note, source })
     .eq("user_id", userId)
     .eq("word_id", wordId);
   if (error) {

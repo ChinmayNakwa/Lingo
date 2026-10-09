@@ -86,7 +86,12 @@ async function WordDetail({ params }: Pick<Props, "params">) {
         </section>
       ))}
 
-      <NoteForm key={entry.wordId} wordId={entry.wordId} note={entry.note} />
+      <NoteForm
+        key={entry.wordId}
+        wordId={entry.wordId}
+        note={entry.note}
+        source={entry.source}
+      />
 
       <footer className="flex flex-wrap items-center justify-between gap-3">
         <p className="text-sm font-medium text-ink/75">Added {addedOn}</p>
