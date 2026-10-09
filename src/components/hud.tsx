@@ -6,6 +6,7 @@ export async function Hud() {
   const days = streak(
     words.map((item) => item.addedAt),
     new Date(),
+    "UTC",
   );
 
   return (

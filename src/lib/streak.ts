@@ -1,20 +1,20 @@
-const DAY_MS = 24 * 60 * 60 * 1000;
+import { dayOf, previousDay } from "./days";
 
-function utcDay(date: Date) {
-  return Math.floor(date.getTime() / DAY_MS);
-}
+// Consecutive days with activity in the given time zone, counting back from
+// today. A streak stays alive through today if the last activity was yesterday.
+export function streak(
+  timestamps: string[],
+  now: Date,
+  timeZone: string,
+): number {
+  const days = new Set(timestamps.map((iso) => dayOf(iso, timeZone)));
+  const today = dayOf(now, timeZone);
 
-// Consecutive UTC days with activity, counting back from today. A streak
-// stays alive through today if the last activity was yesterday.
-export function streak(timestamps: string[], now: Date): number {
-  const days = new Set(timestamps.map((iso) => utcDay(new Date(iso))));
-  const today = utcDay(now);
-
-  let day = days.has(today) ? today : today - 1;
+  let day = days.has(today) ? today : previousDay(today);
   let count = 0;
   while (days.has(day)) {
     count += 1;
-    day -= 1;
+    day = previousDay(day);
   }
   return count;
 }

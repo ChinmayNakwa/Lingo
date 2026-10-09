@@ -46,7 +46,7 @@ export function WordList({ words }: { words: SavedWord[] }) {
     );
   }
 
-  const visible = filterWords(words, { sort, letter, day, text });
+  const visible = filterWords(words, { sort, letter, day, text }, "UTC");
 
   return (
     <div className="flex flex-col gap-4">
@@ -103,7 +103,7 @@ export function WordList({ words }: { words: SavedWord[] }) {
         ))}
       </div>
 
-      <DayPicker counts={wordsPerDay(words)} day={day} onChange={setDay} />
+      <DayPicker counts={wordsPerDay(words, "UTC")} day={day} onChange={setDay} />
 
       <p className="text-sm font-bold" role="status">
         {visible.length === words.length
