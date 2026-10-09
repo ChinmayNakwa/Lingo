@@ -1,6 +1,9 @@
 import Link from "next/link";
 import { Suspense } from "react";
 import { SearchForm } from "@/components/search-form";
+import { pickDailyWord } from "@/lib/daily-word";
+import { dayOf } from "@/lib/days";
+import { getTimeZone } from "@/lib/time-zone";
 import { getMyWords } from "@/lib/words";
 
 export default function Home() {
@@ -16,6 +19,10 @@ export default function Home() {
         <SearchForm />
       </section>
 
+      <Suspense>
+        <DailyWord />
+      </Suspense>
+
       <section className="flex flex-col gap-3">
         <h2 className="text-xl font-extrabold">Latest catches</h2>
         <Suspense fallback={<p className="font-medium">Loading your words…</p>}>
@@ -23,6 +30,35 @@ export default function Home() {
         </Suspense>
       </section>
     </div>
+  );
+}
+
+async function DailyWord() {
+  const [words, timeZone] = await Promise.all([getMyWords(), getTimeZone()]);
+  const pick = pickDailyWord(words, dayOf(new Date(), timeZone), timeZone);
+  if (!pick) {
+    return null;
+  }
+
+  return (
+    <section className="card flex flex-col items-start gap-2">
+      <h2 className="text-xl font-extrabold">Remember this one?</h2>
+      <Link
+        href={`/words/${encodeURIComponent(pick.word)}`}
+        className="text-3xl leading-tight font-extrabold wrap-break-word text-grape"
+      >
+        {pick.word}
+      </Link>
+      <details>
+        <summary className="chip cursor-pointer">Show meaning</summary>
+        <p className="mt-2 font-medium">
+          {pick.partOfSpeech && (
+            <span className="font-bold">{pick.partOfSpeech}: </span>
+          )}
+          {pick.gloss}
+        </p>
+      </details>
+    </section>
   );
 }
 
