@@ -39,3 +39,27 @@ export function previousDay(day: string): string {
   date.setUTCDate(date.getUTCDate() - 1);
   return date.toISOString().slice(0, 10);
 }
+
+export type ActivityDay = { day: string; count: number };
+
+// Whole weeks, Monday first, ending with the week that holds `today`. Days
+// after today are null.
+export function activityWeeks(
+  counts: Map<string, number>,
+  today: string,
+  weeks: number,
+): (ActivityDay | null)[][] {
+  const end = new Date(`${today}T00:00:00Z`);
+  const weekday = (end.getUTCDay() + 6) % 7;
+  const start = new Date(end);
+  start.setUTCDate(end.getUTCDate() - weekday - (weeks - 1) * 7);
+
+  return Array.from({ length: weeks }, (_, week) =>
+    Array.from({ length: 7 }, (_, offset) => {
+      const date = new Date(start);
+      date.setUTCDate(start.getUTCDate() + week * 7 + offset);
+      const day = date.toISOString().slice(0, 10);
+      return day > today ? null : { day, count: counts.get(day) ?? 0 };
+    }),
+  );
+}
