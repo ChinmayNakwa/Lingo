@@ -1,9 +1,11 @@
 import Link from "next/link";
 import { Suspense } from "react";
+import { ActivityGrid } from "@/components/activity-grid";
 import { SearchForm } from "@/components/search-form";
 import { pickDailyWord } from "@/lib/daily-word";
-import { dayOf } from "@/lib/days";
+import { activityWeeks, dayOf } from "@/lib/days";
 import { getTimeZone } from "@/lib/time-zone";
+import { wordsPerDay } from "@/lib/word-filter";
 import { getMyWords } from "@/lib/words";
 
 export default function Home() {
@@ -29,6 +31,10 @@ export default function Home() {
           <LatestWords />
         </Suspense>
       </section>
+
+      <Suspense>
+        <Activity />
+      </Suspense>
     </div>
   );
 }
@@ -58,6 +64,23 @@ async function DailyWord() {
           {pick.gloss}
         </p>
       </details>
+    </section>
+  );
+}
+
+async function Activity() {
+  const [words, timeZone] = await Promise.all([getMyWords(), getTimeZone()]);
+  if (words.length === 0) {
+    return null;
+  }
+
+  const today = dayOf(new Date(), timeZone);
+  return (
+    <section className="flex flex-col gap-3">
+      <h2 className="text-xl font-extrabold">Your year</h2>
+      <ActivityGrid
+        weeks={activityWeeks(wordsPerDay(words, timeZone), today, 53)}
+      />
     </section>
   );
 }
