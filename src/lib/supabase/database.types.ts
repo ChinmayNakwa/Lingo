@@ -51,6 +51,10 @@ export type Database = {
           note: string | null;
           source: string | null;
           created_at: string;
+          review_box: number;
+          next_review_at: string;
+          last_reviewed_at: string | null;
+          lapses: number;
         };
         Insert: {
           user_id?: string;
@@ -58,6 +62,10 @@ export type Database = {
           note?: string | null;
           source?: string | null;
           created_at?: string;
+          review_box?: number;
+          next_review_at?: string;
+          last_reviewed_at?: string | null;
+          lapses?: number;
         };
         Update: {
           user_id?: string;
@@ -65,6 +73,10 @@ export type Database = {
           note?: string | null;
           source?: string | null;
           created_at?: string;
+          review_box?: number;
+          next_review_at?: string;
+          last_reviewed_at?: string | null;
+          lapses?: number;
         };
         Relationships: [
           {
