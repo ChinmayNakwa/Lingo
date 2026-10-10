@@ -10,6 +10,8 @@ export type SavedWord = {
   gloss: string;
   partOfSpeech: string;
   addedAt: string;
+  // When the user first wrote a sentence for it; null until then.
+  learnedAt: string | null;
 };
 
 export type WordDetail = {
@@ -75,22 +77,33 @@ export async function saveWord(word: string): Promise<SaveResult> {
 export const getMyWords = cache(async (): Promise<SavedWord[]> => {
   const { supabase, userId } = await requireUser();
 
-  const { data, error } = await supabase
-    .from("user_words")
-    .select("created_at, words(word, meanings)")
-    .eq("user_id", userId)
-    .order("created_at", { ascending: false });
+  const [saved, sentences] = await Promise.all([
+    supabase
+      .from("user_words")
+      .select("word_id, created_at, words(word, meanings)")
+      .eq("user_id", userId)
+      .order("created_at", { ascending: false }),
+    supabase
+      .from("sentences")
+      .select("word_id, created_at")
+      .eq("user_id", userId),
+  ]);
+  const error = saved.error ?? sentences.error;
   if (error) {
     throw new Error(`Couldn't load your words: ${error.message}`);
   }
 
-  return data.map((row) => {
+  const learnedAt = new Map(
+    sentences.data?.map((row) => [row.word_id, row.created_at]),
+  );
+  return (saved.data ?? []).map((row) => {
     const first = row.words.meanings[0];
     return {
       word: row.words.word,
       gloss: first?.definitions[0]?.definition ?? "",
       partOfSpeech: first?.partOfSpeech ?? "",
       addedAt: row.created_at,
+      learnedAt: learnedAt.get(row.word_id) ?? null,
     };
   });
 });

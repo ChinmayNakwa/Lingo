@@ -54,6 +54,11 @@ async function WordDetail({ params }: Pick<Props, "params">) {
             {entry.word}
           </h1>
           {entry.phonetic && <p className="font-medium">{entry.phonetic}</p>}
+          {sentence && (
+            <p className="mt-2">
+              <span className="chip bg-leaf text-card">Learned</span>
+            </p>
+          )}
         </div>
         {entry.audioUrl && (
           <AudioButton src={entry.audioUrl} word={entry.word} />

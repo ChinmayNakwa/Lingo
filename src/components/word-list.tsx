@@ -6,6 +6,7 @@ import {
   availableLetters,
   filterWords,
   type WordSort,
+  type WordState,
   wordsPerDay,
 } from "@/lib/word-filter";
 import type { SavedWord } from "@/lib/words";
@@ -14,6 +15,12 @@ import { DayPicker } from "./day-picker";
 const sorts: { value: WordSort; label: string }[] = [
   { value: "recent", label: "Recent" },
   { value: "az", label: "A–Z" },
+];
+
+const states: { value: WordState; label: string }[] = [
+  { value: "all", label: "All" },
+  { value: "learned", label: "Learned" },
+  { value: "unlearned", label: "Not learned" },
 ];
 
 function toggleClass(pressed: boolean) {
@@ -36,6 +43,7 @@ export function WordList({
   timeZone: string;
 }) {
   const [sort, setSort] = useState<WordSort>("recent");
+  const [state, setState] = useState<WordState>("all");
   const [letter, setLetter] = useState<string | null>(null);
   const [day, setDay] = useState<string | null>(null);
   const [text, setText] = useState("");
@@ -52,7 +60,9 @@ export function WordList({
     );
   }
 
-  const visible = filterWords(words, { sort, letter, day, text }, timeZone);
+  const visible = filterWords(words, { sort, state, letter, day, text },
+    timeZone,
+  );
 
   return (
     <div className="flex flex-col gap-4">
@@ -77,6 +87,20 @@ export function WordList({
             aria-pressed={sort === option.value}
             onClick={() => setSort(option.value)}
             className={toggleClass(sort === option.value)}
+          >
+            {option.label}
+          </button>
+        ))}
+      </div>
+
+      <div className="flex flex-wrap gap-2" role="group" aria-label="State">
+        {states.map((option) => (
+          <button
+            key={option.value}
+            type="button"
+            aria-pressed={state === option.value}
+            onClick={() => setState(option.value)}
+            className={toggleClass(state === option.value)}
           >
             {option.label}
           </button>
@@ -140,6 +164,9 @@ export function WordList({
                   </span>
                 </span>
                 <span className="line-clamp-1 font-medium">{item.gloss}</span>
+                {item.learnedAt && (
+                  <span className="text-sm font-bold text-leaf">Learned</span>
+                )}
               </Link>
             </li>
           ))}

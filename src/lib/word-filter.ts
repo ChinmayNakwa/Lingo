@@ -2,8 +2,11 @@ import { dayOf } from "./days";
 
 export type WordSort = "recent" | "az";
 
+export type WordState = "all" | "learned" | "unlearned";
+
 export type WordFilter = {
   sort: WordSort;
+  state: WordState;
   letter: string | null;
   // A day such as "2026-10-09" in the time zone passed to filterWords.
   day: string | null;
@@ -11,6 +14,18 @@ export type WordFilter = {
 };
 
 type Filterable = { word: string; addedAt: string };
+type Stateful = Filterable & { learnedAt: string | null };
+
+function inState(item: Stateful, state: WordState) {
+  switch (state) {
+    case "learned":
+      return item.learnedAt !== null;
+    case "unlearned":
+      return item.learnedAt === null;
+    default:
+      return true;
+  }
+}
 
 export function availableLetters(words: Filterable[]): string[] {
   return [...new Set(words.map((item) => item.word[0].toUpperCase()))].sort();
@@ -46,15 +61,16 @@ export function monthCells(year: number, month: number): (string | null)[] {
   return cells;
 }
 
-export function filterWords<T extends Filterable>(
+export function filterWords<T extends Stateful>(
   words: T[],
-  { sort, letter, day, text }: WordFilter,
+  { sort, state, letter, day, text }: WordFilter,
   timeZone: string,
 ): T[] {
   const query = text.trim().toLowerCase();
 
   const matches = words.filter(
     (item) =>
+      inState(item, state) &&
       (!letter || item.word[0].toUpperCase() === letter) &&
       (!day || dayOf(item.addedAt, timeZone) === day) &&
       item.word.includes(query),
