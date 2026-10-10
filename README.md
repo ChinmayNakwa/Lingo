@@ -1,8 +1,23 @@
 # Lingo
 
-A vocabulary app for the words you meet while reading. Look a word up and it is saved with its meaning, pronunciation and examples. Browse your collection by recency or alphabet, write a sentence with each word to mark it learned, and review words on a spaced schedule.
+A vocabulary app for the words you meet while reading. Look a word up and it is saved with its meaning, pronunciation and examples. Write a sentence with each word to mark it learned, and review your words on a spaced schedule.
 
 Built with Next.js 16, Supabase and Tailwind 4. Everything runs on free tiers.
+
+![Home screen with the search box, the review card and the word to remember](docs/home.png)
+
+![My words list beside a word page with its sentence box](docs/word.png)
+
+## Features
+
+- **Look up and save:** one search box; a word that is not found gets "did you mean" suggestions.
+- **Word page:** meanings, examples and similar words, plus your own note and where you met the word.
+- **My words:** sort by recent or A–Z, and filter by text, first letter, the day added, or state (learned, not learned, due, weak).
+- **Sentences:** one sentence of your own per word marks it learned.
+- **Review:** flashcards for the words that are due, up to twenty a round.
+- **Progress:** streak, points and word count in the header, a mastery level on every word, a word to remember each day, and a grid of the last year's activity.
+
+Days are counted in your browser's time zone.
 
 ## Setup
 
