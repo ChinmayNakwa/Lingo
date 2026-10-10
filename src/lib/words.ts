@@ -26,6 +26,7 @@ export type WordDetail = {
   note: string | null;
   source: string | null;
   addedAt: string;
+  review: Review;
 };
 
 export type SaveResult = "saved" | "not-found" | "unreachable" | "failed";
@@ -125,7 +126,9 @@ export async function getMyWord(word: string): Promise<WordDetail | null> {
 
   const { data, error } = await supabase
     .from("user_words")
-    .select("word_id, note, source, created_at, words!inner(word, phonetic, audio_url, meanings)")
+    .select(
+      "word_id, note, source, created_at, review_box, lapses, next_review_at, last_reviewed_at, words!inner(word, phonetic, audio_url, meanings)",
+    )
     .eq("user_id", userId)
     .eq("words.word", word)
     .maybeSingle();
@@ -145,6 +148,12 @@ export async function getMyWord(word: string): Promise<WordDetail | null> {
     note: data.note,
     source: data.source,
     addedAt: data.created_at,
+    review: {
+      box: data.review_box,
+      lapses: data.lapses,
+      nextReviewAt: data.next_review_at,
+      lastReviewedAt: data.last_reviewed_at,
+    },
   };
 }
 

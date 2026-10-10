@@ -6,6 +6,7 @@ import { AudioButton } from "@/components/audio-button";
 import { NoteForm } from "@/components/note-form";
 import { SentenceForm } from "@/components/sentence-form";
 import { cleanQuery } from "@/lib/dictionary";
+import { MASTERY_LABELS, masteryOf } from "@/lib/review";
 import { getMySentence } from "@/lib/sentences";
 import { getTimeZone } from "@/lib/time-zone";
 import { getMyWord } from "@/lib/words";
@@ -54,11 +55,14 @@ async function WordDetail({ params }: Pick<Props, "params">) {
             {entry.word}
           </h1>
           {entry.phonetic && <p className="font-medium">{entry.phonetic}</p>}
-          {sentence && (
-            <p className="mt-2">
+          <p className="mt-2 flex flex-wrap gap-2">
+            <span className="chip bg-sun">
+              {MASTERY_LABELS[masteryOf(entry.review)]}
+            </span>
+            {sentence && (
               <span className="chip bg-leaf text-card">Learned</span>
-            </p>
-          )}
+            )}
+          </p>
         </div>
         {entry.audioUrl && (
           <AudioButton src={entry.audioUrl} word={entry.word} />

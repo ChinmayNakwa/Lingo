@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useId, useState } from "react";
+import { MASTERY_LABELS, masteryOf } from "@/lib/review";
 import {
   availableLetters,
   filterWords,
@@ -164,9 +165,12 @@ export function WordList({
                   </span>
                 </span>
                 <span className="line-clamp-1 font-medium">{item.gloss}</span>
-                {item.learnedAt && (
-                  <span className="text-sm font-bold text-leaf">Learned</span>
-                )}
+                <span className="flex flex-wrap gap-x-3 text-sm font-bold">
+                  <span className="text-ink/75">
+                    {MASTERY_LABELS[masteryOf(item.review)]}
+                  </span>
+                  {item.learnedAt && <span className="text-leaf">Learned</span>}
+                </span>
               </Link>
             </li>
           ))}
