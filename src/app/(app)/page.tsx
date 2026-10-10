@@ -4,7 +4,6 @@ import { ActivityGrid } from "@/components/activity-grid";
 import { SearchForm } from "@/components/search-form";
 import { pickDailyWord } from "@/lib/daily-word";
 import { activityWeeks, dayOf } from "@/lib/days";
-import { isDue } from "@/lib/review";
 import { getTimeZone } from "@/lib/time-zone";
 import { wordsPerDay } from "@/lib/word-filter";
 import { getMyWords } from "@/lib/words";
@@ -46,8 +45,7 @@ export default function Home() {
 
 async function ReviewCard() {
   const words = await getMyWords();
-  const now = new Date();
-  const due = words.filter((item) => isDue(item.review, now)).length;
+  const due = words.filter((item) => item.due).length;
   if (due === 0) {
     return null;
   }

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useId, useState } from "react";
-import { MASTERY_LABELS, masteryOf } from "@/lib/review";
+import { isWeak, MASTERY_LABELS, masteryOf } from "@/lib/review";
 import {
   availableLetters,
   filterWords,
@@ -22,6 +22,8 @@ const states: { value: WordState; label: string }[] = [
   { value: "all", label: "All" },
   { value: "learned", label: "Learned" },
   { value: "unlearned", label: "Not learned" },
+  { value: "due", label: "Due" },
+  { value: "weak", label: "Weak" },
 ];
 
 function toggleClass(pressed: boolean) {
@@ -170,6 +172,9 @@ export function WordList({
                     {MASTERY_LABELS[masteryOf(item.review)]}
                   </span>
                   {item.learnedAt && <span className="text-leaf">Learned</span>}
+                  {isWeak(item.review) && (
+                    <span className="text-coral">Weak</span>
+                  )}
                 </span>
               </Link>
             </li>

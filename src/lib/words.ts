@@ -15,6 +15,8 @@ export type SavedWord = {
   // When the user first wrote a sentence for it; null until then.
   learnedAt: string | null;
   review: Review;
+  // Whether it was due for review when the list was loaded.
+  due: boolean;
 };
 
 export type WordDetail = {
@@ -102,6 +104,7 @@ export const getMyWords = cache(async (): Promise<SavedWord[]> => {
   const learnedAt = new Map(
     sentences.data?.map((row) => [row.word_id, row.created_at]),
   );
+  const now = new Date();
   return (saved.data ?? []).map((row) => {
     const first = row.words.meanings[0];
     return {
@@ -117,6 +120,7 @@ export const getMyWords = cache(async (): Promise<SavedWord[]> => {
         nextReviewAt: row.next_review_at,
         lastReviewedAt: row.last_reviewed_at,
       },
+      due: isDue({ nextReviewAt: row.next_review_at }, now),
     };
   });
 });

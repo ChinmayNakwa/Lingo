@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { points } from "@/lib/points";
-import { isDue } from "@/lib/review";
 import { streak } from "@/lib/streak";
 import { getTimeZone } from "@/lib/time-zone";
 import { getMyWords } from "@/lib/words";
@@ -8,7 +7,7 @@ import { getMyWords } from "@/lib/words";
 export async function Hud() {
   const [words, timeZone] = await Promise.all([getMyWords(), getTimeZone()]);
   const now = new Date();
-  const due = words.filter((item) => isDue(item.review, now)).length;
+  const due = words.filter((item) => item.due).length;
   // A day counts when a word was saved or a sentence was written.
   const days = streak(
     words.flatMap((item) =>

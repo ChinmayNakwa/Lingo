@@ -6,10 +6,23 @@ import {
   wordsPerDay,
 } from "./word-filter";
 
+const fresh = { learnedAt: null, due: false, review: { box: 1, lapses: 0 } };
+
 const words = [
-  { word: "laconic", addedAt: "2026-10-01T20:00:00Z", learnedAt: "2026-10-04T08:00:00Z" },
-  { word: "arcane", addedAt: "2026-10-03T20:00:00Z", learnedAt: null },
-  { word: "lucid", addedAt: "2026-10-02T20:00:00Z", learnedAt: null },
+  {
+    ...fresh,
+    word: "laconic",
+    addedAt: "2026-10-01T20:00:00Z",
+    learnedAt: "2026-10-04T08:00:00Z",
+    due: true,
+  },
+  {
+    ...fresh,
+    word: "arcane",
+    addedAt: "2026-10-03T20:00:00Z",
+    review: { box: 2, lapses: 2 },
+  },
+  { ...fresh, word: "lucid", addedAt: "2026-10-02T20:00:00Z", due: true },
 ];
 
 const everything = {
@@ -63,6 +76,14 @@ describe("filterWords", () => {
     expect(unlearned.map((item) => item.word)).toEqual(["arcane", "lucid"]);
   });
 
+  it("filters by due and by weak", () => {
+    const due = filterWords(words, { ...everything, state: "due" }, "UTC");
+    expect(due.map((item) => item.word)).toEqual(["lucid", "laconic"]);
+
+    const weak = filterWords(words, { ...everything, state: "weak" }, "UTC");
+    expect(weak.map((item) => item.word)).toEqual(["arcane"]);
+  });
+
   it("does not reorder the list it was given", () => {
     filterWords(words, { ...everything, sort: "az" }, "UTC");
     expect(words[0].word).toBe("laconic");
@@ -72,8 +93,8 @@ describe("filterWords", () => {
 describe("filtering by day", () => {
   const dated = [
     ...words,
-    { word: "terse", addedAt: "2026-10-02T23:59:59.5+00:00", learnedAt: null },
-    { word: "pithy", addedAt: "2026-10-03T00:00:00+00:00", learnedAt: null },
+    { ...fresh, word: "terse", addedAt: "2026-10-02T23:59:59.5+00:00" },
+    { ...fresh, word: "pithy", addedAt: "2026-10-03T00:00:00+00:00" },
   ];
 
   it("keeps only words added on that day", () => {

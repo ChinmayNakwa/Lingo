@@ -1,8 +1,9 @@
 import { dayOf } from "./days";
+import { isWeak, type Review } from "./review";
 
 export type WordSort = "recent" | "az";
 
-export type WordState = "all" | "learned" | "unlearned";
+export type WordState = "all" | "learned" | "unlearned" | "due" | "weak";
 
 export type WordFilter = {
   sort: WordSort;
@@ -14,7 +15,11 @@ export type WordFilter = {
 };
 
 type Filterable = { word: string; addedAt: string };
-type Stateful = Filterable & { learnedAt: string | null };
+type Stateful = Filterable & {
+  learnedAt: string | null;
+  due: boolean;
+  review: Pick<Review, "box" | "lapses">;
+};
 
 function inState(item: Stateful, state: WordState) {
   switch (state) {
@@ -22,6 +27,10 @@ function inState(item: Stateful, state: WordState) {
       return item.learnedAt !== null;
     case "unlearned":
       return item.learnedAt === null;
+    case "due":
+      return item.due;
+    case "weak":
+      return isWeak(item.review);
     default:
       return true;
   }
