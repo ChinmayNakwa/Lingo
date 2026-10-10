@@ -104,7 +104,35 @@ describe("normalise", () => {
           synonyms: ["terse", "brief"],
         },
       ],
+      forms: [],
     });
+  });
+
+  it("keeps inflected forms and drops table markup and the word itself", () => {
+    const entry = normalise("run", {
+      entries: [
+        {
+          partOfSpeech: "verb",
+          forms: [
+            { word: "runs", tags: ["present"] },
+            { word: "Ran", tags: ["past"] },
+            { word: "run", tags: ["participle"] },
+            { word: "no-table-tags", tags: ["table-tags"] },
+            { word: "glossary", tags: ["inflection-template"] },
+            { word: "ran", tags: ["past", "plural"] },
+            {},
+          ],
+          senses: [{ definition: "to move fast" }],
+        },
+        {
+          partOfSpeech: "noun",
+          forms: [{ word: "runs", tags: ["plural"] }],
+          senses: [{ definition: "a jog" }],
+        },
+      ],
+    });
+
+    expect(entry?.forms).toEqual(["runs", "ran"]);
   });
 
   it("returns null when nothing has a definition", () => {

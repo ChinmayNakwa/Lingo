@@ -21,6 +21,7 @@ export type Database = {
           phonetic: string | null;
           audio_url: string | null;
           meanings: Meaning[];
+          forms: string[];
           created_at: string;
         };
         Insert: {
@@ -29,6 +30,7 @@ export type Database = {
           phonetic?: string | null;
           audio_url?: string | null;
           meanings: Meaning[];
+          forms?: string[];
           created_at?: string;
         };
         Update: {
@@ -37,6 +39,7 @@ export type Database = {
           phonetic?: string | null;
           audio_url?: string | null;
           meanings?: Meaning[];
+          forms?: string[];
           created_at?: string;
         };
         Relationships: [];

@@ -4,12 +4,14 @@ export type DictionaryEntry = {
   word: string;
   phonetic: string | null;
   meanings: Meaning[];
+  forms: string[];
 };
 
 type ApiBody = {
   entries?: {
     partOfSpeech?: string;
     pronunciations?: { text?: string }[];
+    forms?: { word?: string; tags?: string[] }[];
     synonyms?: string[];
     senses?: { definition?: string; examples?: string[]; synonyms?: string[] }[];
   }[];
@@ -26,10 +28,26 @@ const MAX_SUGGESTIONS = 3;
 const WORD_PATTERN = /^[a-z][a-z' -]{0,49}$/;
 const MAX_DEFINITIONS = 3;
 const MAX_SYNONYMS = 6;
+const MAX_FORMS = 20;
+// Wiktionary's table markup arrives as forms, e.g. "no-table-tags".
+const MARKUP_TAGS = ["table-tags", "inflection-template", "class"];
 
 export function cleanQuery(input: string): string | null {
   const word = input.trim().toLowerCase().replace(/\s+/g, " ");
   return WORD_PATTERN.test(word) ? word : null;
+}
+
+// Inflected forms such as "ran" for "run", without the word itself.
+function pickForms(word: string, entries: NonNullable<ApiBody["entries"]>) {
+  const picked = new Set<string>();
+  for (const form of entries.flatMap((entry) => entry.forms ?? [])) {
+    if (form.tags?.some((tag) => MARKUP_TAGS.includes(tag))) continue;
+    const candidate = cleanQuery(form.word ?? "");
+    if (candidate && candidate !== word) {
+      picked.add(candidate);
+    }
+  }
+  return [...picked].slice(0, MAX_FORMS);
 }
 
 export function normalise(word: string, body: ApiBody): DictionaryEntry | null {
@@ -77,7 +95,7 @@ export function normalise(word: string, body: ApiBody): DictionaryEntry | null {
       .flatMap((entry) => entry.pronunciations ?? [])
       .find((item) => item.text)?.text ?? null;
 
-  return { word, phonetic, meanings };
+  return { word, phonetic, meanings, forms: pickForms(word, entries) };
 }
 
 // Returns null on a 404; throws when the source is unreachable.
