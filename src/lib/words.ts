@@ -2,16 +2,19 @@ import "server-only";
 import { cache } from "react";
 import { requireUser } from "./auth";
 import { fetchDefinition, type DictionaryEntry } from "./dictionary";
+import { grade, isDue, type Review } from "./review";
 import { createAdminClient } from "./supabase/admin";
 import type { Meaning } from "./supabase/database.types";
 
 export type SavedWord = {
+  wordId: number;
   word: string;
   gloss: string;
   partOfSpeech: string;
   addedAt: string;
   // When the user first wrote a sentence for it; null until then.
   learnedAt: string | null;
+  review: Review;
 };
 
 export type WordDetail = {
@@ -80,7 +83,9 @@ export const getMyWords = cache(async (): Promise<SavedWord[]> => {
   const [saved, sentences] = await Promise.all([
     supabase
       .from("user_words")
-      .select("word_id, created_at, words(word, meanings)")
+      .select(
+        "word_id, created_at, review_box, lapses, next_review_at, last_reviewed_at, words(word, meanings)",
+      )
       .eq("user_id", userId)
       .order("created_at", { ascending: false }),
     supabase
@@ -99,11 +104,18 @@ export const getMyWords = cache(async (): Promise<SavedWord[]> => {
   return (saved.data ?? []).map((row) => {
     const first = row.words.meanings[0];
     return {
+      wordId: row.word_id,
       word: row.words.word,
       gloss: first?.definitions[0]?.definition ?? "",
       partOfSpeech: first?.partOfSpeech ?? "",
       addedAt: row.created_at,
       learnedAt: learnedAt.get(row.word_id) ?? null,
+      review: {
+        box: row.review_box,
+        lapses: row.lapses,
+        nextReviewAt: row.next_review_at,
+        lastReviewedAt: row.last_reviewed_at,
+      },
     };
   });
 });
@@ -166,4 +178,48 @@ export async function removeWord(wordId: number): Promise<boolean> {
     console.error("Removing the word failed", error);
   }
   return !error;
+}
+
+// Grades a due word. A word that is not due is left alone, so a repeated
+// request cannot move it twice.
+export async function recordReview(
+  wordId: number,
+  remembered: boolean,
+): Promise<boolean> {
+  const { supabase, userId } = await requireUser();
+
+  const { data, error } = await supabase
+    .from("user_words")
+    .select("review_box, lapses, next_review_at")
+    .eq("user_id", userId)
+    .eq("word_id", wordId)
+    .maybeSingle();
+  if (error || !data) {
+    return false;
+  }
+
+  const now = new Date();
+  if (!isDue({ nextReviewAt: data.next_review_at }, now)) {
+    return true;
+  }
+
+  const next = grade(
+    { box: data.review_box, lapses: data.lapses },
+    remembered,
+    now,
+  );
+  const { error: failure } = await supabase
+    .from("user_words")
+    .update({
+      review_box: next.box,
+      lapses: next.lapses,
+      next_review_at: next.nextReviewAt,
+      last_reviewed_at: next.lastReviewedAt,
+    })
+    .eq("user_id", userId)
+    .eq("word_id", wordId);
+  if (failure) {
+    console.error("Saving the review failed", failure);
+  }
+  return !failure;
 }
