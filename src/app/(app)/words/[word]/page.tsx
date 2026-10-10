@@ -4,7 +4,9 @@ import { Suspense } from "react";
 import { deleteWord } from "@/app/actions/words";
 import { AudioButton } from "@/components/audio-button";
 import { NoteForm } from "@/components/note-form";
+import { SentenceForm } from "@/components/sentence-form";
 import { cleanQuery } from "@/lib/dictionary";
+import { getMySentence } from "@/lib/sentences";
 import { getTimeZone } from "@/lib/time-zone";
 import { getMyWord } from "@/lib/words";
 
@@ -33,6 +35,7 @@ async function WordDetail({ params }: Pick<Props, "params">) {
     notFound();
   }
 
+  const sentence = await getMySentence(entry.wordId);
   const addedOn = new Date(entry.addedAt).toLocaleDateString("en-GB", {
     day: "numeric",
     month: "short",
@@ -82,6 +85,13 @@ async function WordDetail({ params }: Pick<Props, "params">) {
           )}
         </section>
       ))}
+
+      <SentenceForm
+        key={`sentence-${entry.wordId}`}
+        wordId={entry.wordId}
+        word={entry.word}
+        sentence={sentence}
+      />
 
       <NoteForm
         key={entry.wordId}
