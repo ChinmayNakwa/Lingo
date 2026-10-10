@@ -4,6 +4,7 @@ import { ActivityGrid } from "@/components/activity-grid";
 import { SearchForm } from "@/components/search-form";
 import { pickDailyWord } from "@/lib/daily-word";
 import { activityWeeks, dayOf } from "@/lib/days";
+import { isDue } from "@/lib/review";
 import { getTimeZone } from "@/lib/time-zone";
 import { wordsPerDay } from "@/lib/word-filter";
 import { getMyWords } from "@/lib/words";
@@ -22,6 +23,10 @@ export default function Home() {
       </section>
 
       <Suspense>
+        <ReviewCard />
+      </Suspense>
+
+      <Suspense>
         <DailyWord />
       </Suspense>
 
@@ -36,6 +41,26 @@ export default function Home() {
         <Activity />
       </Suspense>
     </div>
+  );
+}
+
+async function ReviewCard() {
+  const words = await getMyWords();
+  const now = new Date();
+  const due = words.filter((item) => isDue(item.review, now)).length;
+  if (due === 0) {
+    return null;
+  }
+
+  return (
+    <section className="card flex flex-wrap items-center justify-between gap-3">
+      <h2 className="text-xl font-extrabold">
+        {due} {due === 1 ? "word is" : "words are"} due for review
+      </h2>
+      <Link href="/review" className="btn">
+        Start review
+      </Link>
+    </section>
   );
 }
 
