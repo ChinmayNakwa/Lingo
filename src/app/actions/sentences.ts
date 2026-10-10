@@ -2,6 +2,7 @@
 
 import { refresh } from "next/cache";
 import type { FormState } from "@/lib/form-state";
+import { SENTENCE_POINTS } from "@/lib/points";
 import { checkSentence } from "@/lib/sentence-rules";
 import { getSentenceTarget, writeSentence } from "@/lib/sentences";
 
@@ -33,5 +34,9 @@ export async function saveSentence(
   }
 
   refresh();
-  return { message: target.hasSentence ? "Saved." : "Saved. Word learned!" };
+  return {
+    message: target.hasSentence
+      ? "Saved."
+      : `Word learned! +${SENTENCE_POINTS} points`,
+  };
 }
