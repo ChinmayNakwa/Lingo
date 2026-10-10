@@ -100,3 +100,7 @@ Free Supabase projects pause after a week without activity. Restore one from the
 Word data comes from [freedictionaryapi.com](https://freedictionaryapi.com) and is cached in the `words` table after the first lookup. It serves [Wiktionary](https://en.wiktionary.org) data under CC BY-SA 4.0 and has no audio.
 
 Spelling suggestions for words that are not found come from [Datamuse](https://www.datamuse.com/api/).
+
+## License
+
+The code is under the [MIT License](LICENSE). Word data from Wiktionary keeps its own CC BY-SA 4.0 licence.
