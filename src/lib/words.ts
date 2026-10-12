@@ -11,6 +11,7 @@ export type SavedWord = {
   word: string;
   gloss: string;
   partOfSpeech: string;
+  synonyms: string[];
   addedAt: string;
   // When the user first wrote a sentence for it; null until then.
   learnedAt: string | null;
@@ -112,6 +113,7 @@ export const getMyWords = cache(async (): Promise<SavedWord[]> => {
       word: row.words.word,
       gloss: first?.definitions[0]?.definition ?? "",
       partOfSpeech: first?.partOfSpeech ?? "",
+      synonyms: first?.synonyms ?? [],
       addedAt: row.created_at,
       learnedAt: learnedAt.get(row.word_id) ?? null,
       review: {
