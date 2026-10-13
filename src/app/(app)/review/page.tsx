@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Suspense } from "react";
-import { Flashcards } from "@/components/flashcard";
+import { ReviewSession } from "@/components/flashcard";
+import { buildChoices } from "@/lib/quiz";
 import { reviewQueue } from "@/lib/review";
 import { getTimeZone } from "@/lib/time-zone";
 import { getMyWords } from "@/lib/words";
@@ -23,17 +24,18 @@ async function Session() {
     word: item.word,
     gloss: item.gloss,
     partOfSpeech: item.partOfSpeech,
+    choices: buildChoices(item, words),
   }));
 
   return (
-    <Flashcards cards={cards}>
+    <ReviewSession cards={cards}>
       <NothingDue
         nextReviewAt={
           words.map((item) => item.review.nextReviewAt).sort()[0] ?? null
         }
         timeZone={timeZone}
       />
-    </Flashcards>
+    </ReviewSession>
   );
 }
 
